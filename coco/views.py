@@ -89,21 +89,33 @@ def obj_interact2(request, image_id, src_theme, dst_theme):
     images = Image.objects.all()
     print "IMAGES", images
 
-    # Have some function where you know what edits to make to what object
     # Hardcoded for the elephant pic (id = 30065)
+    # Assume that data is in form: <object_id>:<suggested_edit>
     edits = {
-        "580012": "Replace Object 293011",
+        "580012": "Replace Object 580012",
         "580416": "Replace Object 580416",
         "b": "Add an object to the scene"
     }
 
+    # Hardcoded for the elephant pic (id = 30065)
+    # Assume that data is in form: <object_id>:[catId1, catId2, catId3]
+    # Reference category_id2name.json
+    replacementObjs = {
+        "580012": [19, 20, 25],
+        "580416": [20, 21, 23]
+    }
+
+    test = [19, 20];
+
     # image = images[0]
     # print images[0].id
     context = {
+        'dst_theme': dst_theme,
         'edits': edits,
         'image_id': image_id,
+        'replacement_objs': replacementObjs,
         'src_theme': src_theme,
-        'dst_theme': dst_theme,
+        'test': test
     }
     return render(request, 'coco/obj_interact2.html', context)
 

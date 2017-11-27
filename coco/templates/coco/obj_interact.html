@@ -181,6 +181,7 @@
   });
 
   // Display buttons for possible object categories
+  // category_id2name.json is loaded into var 'catid2name'
   $.get('/media/attributes/category_id2name.json', function(catid2name) {
     for (var cat_id in catid2name) {
         obj_type = catid2name[cat_id]

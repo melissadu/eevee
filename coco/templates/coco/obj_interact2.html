@@ -17,6 +17,9 @@
     var use_custom_obj_cat_id = false // Specify a custom object category for the replacement
     custom_obj_cat_id = null; // User-specified custom object category for the replacement
     var isClicked = true;
+    var selectedObjectCategories = [];
+    var replace_objects = {}
+    var category_id_names = {}
 
     // =================== scroll load ==========================
     $(window).load(function(){
@@ -62,15 +65,14 @@
 
              renderImage(objs, im, ctx); // added
              renderSegmentation(objs, this, ctx, canvas);
+             bestReplacementObjects();
+             appendRadioBoxes()
              canvas_div.data('im', this);
         }
     }
 
     // Render segmentation, where segmentation identifies the different objects.
     function renderSegmentation(objs, im,  ctx, canvas) {
-        console.log("OBJS", objs);
-        console.log("OBJECTS", objects);
-
         // objs is list of object dicts (containing 'segmentation' attribute), one for each segmented object
         for (j = 0; j < objs.length; j++) {
           obj = objs[j];
@@ -139,23 +141,58 @@
            div.style.fontSize = "initial";
            div.style.fontWeight = "normal";
            document.getElementById("outerCanvas").appendChild(div);
-
         }
-        console.log("object_cats: " + object_cats)
     }
 
     function renderImage(objs, im, ctx){
         ctx.clearRect(0, 0, im.width, im.height);
         ctx.drawImage(im, 0, 0);
     }
-    // dummy
+
+    // id = id of the object
+    function getReplaceObjects(id){
+      // Currently hardcoded
+      if(id == 580012){
+        return [19, 20, 25]
+      } else if(id == 580416){
+        return [20, 21, 23]
+      }
+    }
+
+    // Assume magic function that displays results
+    function bestReplacementObjects(){
+      for(var i=0; i < object_ids.length; i++){
+        var curr_obj_id = object_ids[i];
+        replace_objects[curr_obj_id] = getReplaceObjects(curr_obj_id); // for now, this is hard-coded  
+      }
+    }
+    
+    function appendRadioBoxes() {
+      // Radio Checkmarks
+      for(var item in replace_objects){
+        if(replace_objects.hasOwnProperty(item)){
+          var box = document.getElementById("replace"+item);
+          var replace_ids = replace_objects[item];
+          console.log("replace_ids", replace_ids);
+          for (var replace_id in replace_ids) {
+            var replace_item_id = replace_ids[replace_id];
+            box.innerHTML += "<input type='radio' name='obj_type' value='" + replace_item_id.toString() + "' onclick='update_cat_id(this);'>" + category_id_names[replace_item_id] + "<br>";
+          }
+        }
+      }
+    }
+
     function displayElem(idVal) {
+      // Display Box
       var div = document.getElementById(idVal.toString());
       if(div.style.display == "none"){
         div.style.display = "inherit";
+        // also display all the radio buttons now
       } else {
         div.style.display = "none";
       } 
+
+      // Object "Display"
       var idBox = document.getElementById("a" + idVal.toString());
       if(isClicked){
         idBox.style.width = "140px"; 
@@ -228,7 +265,9 @@
             {% for myKey, myValue in edits.items %}
               <div class="linkClass" onclick="displayElem({{myKey}})">
                 {{myValue}} <br>
-                <div class="newBox" id="{{myKey}}" style="display:none;"></div>
+                <div class="newBox" id="{{myKey}}" style="display:none;">
+                    <div style="display:inherit; border:1px solid blue" id="replace{{myKey}}"> </div>
+                </div>
               </div>
               <!-- <a href="#" class="padded-div1" id="{{myKey}}">{{myValue}}</a> --><br>
               <!-- <div class="padded-div1"><input type="checkbox" name="edit" value="A">{{edit}}<br></div> -->
@@ -251,10 +290,8 @@
 </body>
 
 <script>
-
   $(document).ready(function() {
     // Add the object IDs here. -- object_ids
-
 
     // Action when objects are clicked
     $("#contentColumn").click(function(e) {
@@ -279,11 +316,7 @@
 
   // Display buttons for possible object categories
   $.get('/media/attributes/category_id2name.json', function(catid2name) {
-    for (var cat_id in catid2name) {
-        obj_type = catid2name[cat_id]
-        var button = $("<input type='radio' name='obj_type' value='" + cat_id + "' onclick='update_cat_id(this);'>" + obj_type + "<br>")
-        $('#buttons').append(button);
-    }
+    category_id_names = jQuery.extend(true, {}, catid2name);
   });
 
   // Select to replace object
