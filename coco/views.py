@@ -90,12 +90,10 @@ def obj_interact2(request, image_id, src_theme, dst_theme):
     print "IMAGES", images
 
     # Have some function where you know what edits to make to what object
-    edits = [
-        "Remove Object 439293",
-        "Replace Object 293011 with an dog",
-        "Add a barn to the scene"
-    ]
-
+    edits = {
+        "a": "Replace Object 293011",
+        "b": "Add an object to the scene"
+    }
 
     # image = images[0]
     # print images[0].id

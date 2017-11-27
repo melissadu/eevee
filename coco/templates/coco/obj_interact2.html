@@ -143,6 +143,16 @@
         ctx.drawImage(im, 0, 0);
     }
 
+    // oddly enough, idVal is actually the entire div, whose id is idVal.id
+    function displayElem(idVal) {
+      var div = document.getElementById(idVal.id);
+      if(div.style.display == "none"){
+        div.style.display = "inherit";
+      } else {
+        div.style.display = "none";
+      }
+    }
+
   </script>
 </head>
 
@@ -161,6 +171,19 @@
   .padded-div1 {
     padding-top: 10px;
   }
+  .linkClass {
+    padding-left: 30px;
+    padding-top: 5px;
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .newBox {
+    margin-top: 15px;
+    width: 500px;
+    height: 150px;
+    border:1px solid red; 
+  }
 </style>
 
 <body>
@@ -176,13 +199,17 @@
         </div>
       </div>
       <div style="margin-left: 740px;">
-        <div> Based on your source theme <p style="font-size:30px; color: red;font-weight: bold;display: inline;">{{src_theme}}</p> and your destination theme <p style="font-size:30px;color:red;font-weight: bold;display: inline;">{{dst_theme}} </p>, here are the changes we recommend:
+        <div style="padding-bottom: 15px;"> Based on your source theme <p style="font-size:30px; color: red;font-weight: bold;display: inline;">{{src_theme}}</p> and your destination theme <p style="font-size:30px;color:red;font-weight: bold;display: inline;">{{dst_theme}} </p>, here are the changes we recommend:
         </div>
         {% if edits %}
-            {% for edit in edits %}
-              <div class="padded-div1"><input type="checkbox" name="edit" value="A">{{edit}}<br></div>
+            {% for myKey, myValue in edits.items %}
+              <div class="linkClass" onclick="displayElem({{myKey}})">
+                {{myValue}} <br>
+                <div class="newBox" id="{{myKey}}" style="display:none;"></div>
+              </div>
+              <!-- <a href="#" class="padded-div1" id="{{myKey}}">{{myValue}}</a> --><br>
+              <!-- <div class="padded-div1"><input type="checkbox" name="edit" value="A">{{edit}}<br></div> -->
             {% endfor %}
-            <a href="#" id="editButton">Perform Changes</a>
         {% else %}
             <p>No suggested edits.</p>
         {% endif %}
