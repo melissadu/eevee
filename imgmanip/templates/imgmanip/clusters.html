@@ -1,0 +1,10 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'imgmanip/style.css' %}" />
+
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<div class="container">
+    {% for category in categories %}
+        <img src="https://cs.stanford.edu/people/ranjaykrishna/eevee/media/clusters/{{category}}">
+    {% endfor %}
+</div>

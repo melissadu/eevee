@@ -1,0 +1,331 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'coco/style.css' %}" />
+<link rel="stylesheet" type="text/css" href="{% static 'coco/circular-slider.min.css' %}" />
+<!-- <link rel="stylesheet" type="text/css" href="{% static 'coco/rangeslider.css' %}" /> -->
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<!-- <script src="{% static 'coco/rangeslider.min.js' %}"></script> -->
+<script src="{% static 'coco/circular-slider.min.js' %}"></script>
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<head>
+  <!-- sets 'data' = <json file contents> -->
+  <script src="{% static 'coco/coco50_anns_grouped.json' %}"></script>
+  <script>
+    var objects = [];
+    var image_id = {{image_id}}
+    var obj_id = {{obj_id}}
+    var attr_id = {{attr_id}}
+    var attr_name = "{{attr_name}}"
+    var repl_ids = {{repl_ids}}
+    var repl_urls = {{repl_urls | safe}}
+    var repl_polys = {{repl_polys | safe}}
+    var repl_bboxes = {{repl_bboxes | safe}}
+    var orig_bbox = {{orig_bbox | safe}}
+    // var show_replacements = false
+    console.log("repl_urls", repl_urls)
+    console.log("repl_polys", repl_polys)
+    console.log("repl_bboxes", repl_bboxes)
+    console.log("orig_bbox", {{orig_bbox}}[1])
+    var cat_id = {{cat_id}}
+    var cat_name = "{{cat_name}}"
+    console.log("image_id: " + image_id)
+    console.log("obj_id: " + obj_id)
+    console.log("attr_id: " + attr_id)
+
+    // =================== scroll load ==========================
+    $(window).load(function(){
+        $('#canvas_template').hide();
+        loadVisualizations();
+    });
+
+    // =============== load visualization by sebd AJAX ======
+    function loadVisualizations(){
+        var req= {};
+        im_id_list = [image_id]
+        obj_coords = data[image_id]
+        createImage(obj_coords)
+    }
+
+    // Create DOM structure for one image
+    function createImage(objs){
+         var canvas_div = $('#canvas_template').clone();
+         canvas_div.addClass('canvas_template');
+         canvas_div.show();
+         var imidDOM = canvas_div.children('.imid');
+         var canvasDOM = canvas_div.children('.canvas_div').children('canvas')[0];
+         objects = objs;
+         var im = new Image();
+         im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/halluc_imgs/" + image_id + "_" + obj_id + "_layered.png"
+
+          im.objs = objs;
+          im.canvasDOM = canvasDOM;
+          im.canvas_id = canvas_div;
+          im.canvas_div  = canvas_div;
+          canvas_div.appendTo('#contentColumn')
+
+         im.onload = function(){
+             var objs = im.objs;
+             var canvas = im.canvasDOM;
+             var ctx=canvas.getContext("2d");
+
+             canvas.width = this.width;
+             canvas.height = this.height;
+             console.log("canvas size", canvas.width, canvas.height)
+             ctx.drawImage(this, 0,0);
+
+             renderImage(objs, im, ctx); // added
+             canvas_div.data('im', this);
+        }
+    }
+
+    function renderImage(objs, im, ctx){
+        ctx.clearRect(0, 0, im.width, im.height);
+        ctx.drawImage(im, 0, 0);
+    }
+  </script>
+</head>
+
+<body>
+  <section>
+    <h3>Selected object: {{cat_name}}</h3>
+    <h3>Selected attribute: {{attr_name}}</h3>
+    <div>
+      <b>Show slider?</b>
+      <input type="checkbox" name="show_replacements" onchange="update_show_slider(this);" checked />
+    </div>
+
+    <!-- Display image -->
+    <div id="contentColumn">
+      <div id="canvas_template" style="margin-bottom: 15px; display: block;" class="canvas_template">
+        <div class="imid"></div>
+        <div class="canvas_div" style="margin-top:1px">
+          <canvas class="canvas" id="canvas"></canvas>
+        </div>
+      </div>
+      <!-- Replacement image slider -->
+      <div>
+        <div id="slider1" style="position:absolute; z-index:2;"></div>
+<!--         <input id="slider2" type="range" orient="vertical" style="position:absolute; z-index:2;"> -->
+      </div>
+    </div>
+
+    <div id="repl_canvases" class="container" style="position:absolute; z-index:1;">
+      <div class="row">
+        {% for id in repl_ids %}
+        <!--These represent the replaced object's image.-->
+          <div class="col-md-3">
+            <!--800 width, 300 height was good-->
+            <canvas class="repl_canvas" id="{{id}}" style="border:1px solid red;">
+            </canvas>
+            <canvas class="repl_canvas" id="{{id}}-hidden" style="border:1px solid blue;">
+            </canvas>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</body>
+<script>
+  // Display or hide the replacement objects
+  function update_show_slider(chk_bx){
+    slider = document.getElementById('slider1');
+    // repl_canvases = document.getElementById('repl_canvases');
+    if (chk_bx.checked) {
+      // Display slider and replacement objects
+      slider.style.display = 'inherit';
+      // repl_canvases.style.display = 'inherit';
+    } else {
+      // Hide slider and replacement objects
+      slider.style.display = 'none';
+      // repl_canvases.style.display = 'none';
+    }
+  }
+
+  // Crop replacement images to object polygons
+  // this is also probably where it's scaled
+  for (var i = 0; i < repl_ids.length; i++) {
+      var img = new Image();
+      img.index = i
+      img.id = "" + String(i);
+      img.src = repl_urls[repl_ids[i]]
+      var currWidth = img.width;
+      var currHeight = img.height;
+
+      // this could also be where i change it to be deleted, etc.
+      img.onload = function() {
+        console.log("img.index:", this.index)
+        var cur_id = repl_ids[this.index];
+        console.log("cur_img_id:", cur_id);
+        // console.log("current image dimensions", this.width, this.height);
+        var canvas = document.getElementById(String(cur_id));
+        var ctx = canvas.getContext("2d"); // returns an object that provides methods and properties for drawing on the canvas.
+        
+        // hidden canvas (temporary for cropping)
+        var canvas2 = document.getElementById(String(cur_id) + '-hidden');
+        var ctx2 = canvas2.getContext("2d");
+        
+        // canvas.width = window.innerWidth / 3.5;
+        // canvas.height = window.innerHeight / 2;
+        // could divide by 2 to scale better, but that comes with some tradeoffs.
+        canvas.width = this.width;
+        canvas.height = this.height;
+        canvas2.width = this.width;
+        canvas2.height = this.height;
+
+        // canvas2.width = window.innerWidth;
+        // canvas2.height = window.innerHeight;
+        console.log("canvas size", canvas.width, canvas.height)
+        console.log("canvas2 size", canvas2.width, canvas2.height)
+
+        var bbox = repl_bboxes[repl_ids[this.index]]; // curr bbox?
+        var scale_w = orig_bbox[2];
+        var scale_h = orig_bbox[3];
+        if (bbox[2] > bbox[3]) { // width > height; scale height
+          scale_h = (bbox[3] * (orig_bbox[2]/bbox[2]))
+        } else { // height > width; scale width
+          scale_w = (bbox[2] * (orig_bbox[3]/bbox[3]))
+        }
+        crop_image(ctx2, this);
+        console.log("bbox stuff:", bbox[0], bbox[1], bbox[2], bbox[3]);
+        console.log("scale", scale_w, scale_h);
+        ctx.drawImage(canvas2,
+          bbox[0], bbox[1],
+          bbox[2], bbox[3],
+          0, 0,
+          scale_w, scale_h
+          )
+
+      }
+      $('#' + String(repl_ids[i])).hide();
+  }
+
+  function crop_image(ctx, cur_img) {
+    var cur_id = cur_img.index
+    console.log("cur_id:", cur_id);
+
+    var cur_poly = repl_polys[repl_ids[cur_img.index]]
+    console.log("cur_poly", cur_poly)
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(parseFloat(cur_poly[0][0]), parseFloat(cur_poly[0][1]));
+    for (var i = 1; i < cur_poly.length; i++){
+      px = cur_poly[i][0]
+      py = cur_poly[i][1]
+      ctx.lineTo(Math.round(px), Math.round(py)); // Draw next polygon edge
+    }
+    ctx.closePath();
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.clip();
+    ctx.drawImage(cur_img, 0, 0); // TODO: change x and y?
+    ctx.restore();
+
+    // [later] Resize cropped image to orig object bounding box
+    // document.body.appendChild(cur_img)
+  }
+
+var max_dim = Math.max(orig_bbox[2], orig_bbox[3])
+var imageSlider = $('#slider1').CircularSlider({
+    min : 0,
+    max: 359,
+    radius: (max_dim / 2) * 1.1,
+    innerCircleRatio: 0.9,
+    formLabel : function(value, prefix, suffix) {
+        var index = Math.round((value * repl_ids.length) / 360);
+        var canvases = document.querySelectorAll(".repl_canvas");
+        for (var i = 0; i < canvases.length; i++) {
+            canvases[i].style.display = 'none';
+        }
+        $('#' + String(repl_ids[index])).show();
+    },
+    slide : function(ui, value) {
+        var color = 'rgba(0,0,0, 0.7)'
+        ui.find('.jcs').css({'border-color' : color });
+        ui.find('.jcs-indicator').css({'background' : color });
+    }
+  });
+
+// var imageSlider2 = $('#slider2').slider({
+//     min : 0,
+//     max: 359,
+//     // formLabel : function(value, prefix, suffix) {
+//     //     var index = Math.round((value * repl_ids.length) / 360);
+//     //     var canvases = document.querySelectorAll(".repl_canvas");
+//     //     for (var i = 0; i < canvases.length; i++) {
+//     //         canvases[i].style.display = 'none';
+//     //     }
+//     //     $('#' + String(repl_ids[index])).show();
+//     // },
+//     slide : function(ui, value) {
+//         var color = 'rgba(0,0,0, 0.7)'
+//         ui.find('.jcs').css({'border-color' : color });
+//         ui.find('.jcs-indicator').css({'background' : color });
+//         var index = Math.round((value * repl_ids.length) / 360);
+//     //     var canvases = document.querySelectorAll(".repl_canvas");
+//     //     for (var i = 0; i < canvases.length; i++) {
+//     //         canvases[i].style.display = 'none';
+//     //     }
+//     //     $('#' + String(repl_ids[index])).show()
+//     }
+//   });
+
+  var slider = document.querySelector("#slider1");
+  sliderY = orig_bbox[1] + 150;
+  sliderX = orig_bbox[0] - 50;
+  slider.style.top = sliderY; // TODO: remove static val
+  slider.style.left = sliderX; // TODO: remove static val
+
+  var repl_canvases = document.querySelector("#repl_canvases");
+  canvasY = orig_bbox[1] + 300;
+  canvasX = orig_bbox[0] + 50;
+  repl_canvases.style.top = canvasY; // TODO: remove static val
+  repl_canvases.style.left = canvasX;
+
+  sliderDiffY = canvasY - sliderY;
+  sliderDiffX = canvasX - sliderX;
+
+  // function that moves the object
+  function startDrag(e) {
+    var mx = e.clientX; // horizontal coordinate of mouse click
+    var my = e.clientY; // vertical coordinate of mouse click
+    console.log("mx: ", mx, "repl_canvases.style.top: ", repl_canvases.style.top)
+    console.log("my: ", my);
+
+    canvasY += (my - canvasY);
+    canvasX += (mx - canvasX);
+    sliderY = canvasY - sliderDiffY
+    sliderX = canvasX - sliderDiffX
+    repl_canvases.style.top = canvasY;
+    repl_canvases.style.left = canvasX;
+    slider.style.top = sliderY;
+    slider.style.left = sliderX;
+  }
+
+  var canvas = document.querySelector("#contentColumn");
+  canvas.addEventListener("mousedown", startDrag);
+
+  // repl_canvases.addEventListener('mousedown', function(e) {
+  //   var mx = mouse.x;
+  //   var my = mouse.y;
+  //   console.log("mx: ", mx)
+  //   console.log("my: ", my)
+  //   repl_canvases.style.top = orig_bbox[1] + my;
+  //   repl_canvases.style.left = orig_bbox[0] + mx;
+
+        // // Keep track of where in the object we clicked
+        // // so we can move it smoothly (see mousemove)
+        // myState.dragoffx = mx - mySel.x;
+        // myState.dragoffy = my - mySel.y;
+        // myState.dragging = true;
+        // myState.selection = mySel;
+        // myState.valid = false;
+
+    // // havent returned means we have failed to select anything.
+    // // If there was an object selected, we deselect it
+    // if (myState.selection) {
+    //   myState.selection = null;
+    //   myState.valid = false; // Need to clear the old selection border
+    // }
+  // }, true);
+
+</script>

@@ -1,0 +1,33 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'coco/style.css' %}" />
+
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<!-- List of segmented images -->
+<section>
+    <h3>Segmented images</h3>
+    <table>
+    <tr>
+        <th>Image ID</th>
+        <th>Image Preview</th>
+        <th>Edit image objects</th>
+    </tr>
+    {% if segmented_imgs %}
+        {% for image_id in segmented_imgs %}
+            <tr>
+                <td>{{image_id}}</td>
+                <td>
+                    <img src="https://cs.stanford.edu/people/ranjaykrishna/eevee/media/segmented_imgs/{{image_id}}.jpg" class="preview_img" />
+                </td>
+                <td>
+                    <a href="/coco/obj_interact/{{image_id}}">Edit</a>
+                </td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <p>No segmented images.</p>
+    {% endif %}
+    </table>
+</section>
+
+

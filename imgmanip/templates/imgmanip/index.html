@@ -1,0 +1,53 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'imgmanip/style.css' %}" />
+
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<!-- Upload form -->
+<section>
+    <h3>Upload new image</h3>
+    <form action="{% url 'imgmanip:index' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <p>{{ form.non_field_errors }}</p>
+        <p>{{ form.img_file.label_tag }}</p>
+        <p>
+            {{ form.img_file.errors }}
+            {{ form.img_file }}
+        </p>
+        <p><input type="submit" value="Upload" /></p>
+    </form>
+</section>
+
+<hr>
+
+<!-- List of uploaded images -->
+<section>
+    <h3>Uploaded images</h3>
+    {% if images %}
+        {% for image in images %}
+            <div>
+                <a href="/imgmanip/edit?image_id={{ image.id }}">{{ image.img_file.name }}</a>
+                <img src="{{MEDIA_URL}}{{ image.img_file.url }}" class="preview_img" />
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No images.</p>
+    {% endif %}
+</section>
+
+<!-- List of segmented images -->
+<section>
+    <h3>Segmented images</h3>
+    {% if segmented_imgs %}
+        {% for image_id in segmented_imgs %}
+            <div>
+                <a href="/imgmanip/obj_interact/{{image_id}}">segmented_imgs/{{image_id}}.jpg</a>
+                <img src="https://cs.stanford.edu/people/ranjaykrishna/eevee/media/segmented_imgs/{{image_id}}.jpg" class="preview_img" />
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No segmented images.</p>
+    {% endif %}
+</section>
+
+

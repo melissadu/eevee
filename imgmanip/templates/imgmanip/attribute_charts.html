@@ -1,0 +1,75 @@
+{% load static %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="{% static 'imgmanip/style.css' %}" />
+
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<div id='buttons' class="container">
+</div>
+<div id='charts' class="container">
+</div>
+
+<style>
+    .h-bar {
+        min-height: 40px;
+        min-width: 10px;
+        background-color: steelblue;
+        margin-bottom: 2px;
+        font: 20px sans-serif;
+        color: #f0f8ff;
+        text-align: left;
+        padding-left: 10px;
+        padding-top: 20px;
+    }
+
+    .control-group {
+        padding-top: 10px;
+        margin: 10px;
+    }
+
+    .clear {
+        clear: both;
+    }
+
+    .selected {
+        background-color: #f08080;
+    }
+</style>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+function render(data, div_id) {
+    d3.select(div_id).selectAll("div.h-bar")
+          .data(data)
+      .enter()
+      .append("div")
+          .attr("class", "h-bar")
+      .append("span");
+    d3.select(div_id).selectAll("div.h-bar")
+          .data(data)
+      .exit().remove();
+    d3.select("body").selectAll("div.h-bar")
+          .data(data)
+      .attr("class", "h-bar")
+      .style("width", function (d) {
+          return (d.count) + "px";}
+      )
+      .select("span")
+          .style('color', 'black')
+          .text(function (d) {
+          return d.attribute + ' (' + d.count + ')';
+      });
+}
+$.get('/media/attributes/coco_attributes.json', function(cat2atr) {
+    for (var cat in cat2atr) {
+        var button = $("<button style='margin: 5px' class='btn btn-default'>" + cat + "</button>")
+        button.click(function(cat) {
+            return function () { 
+                render(cat2atr[cat].slice(0,100), '#charts'); 
+            }
+        }(cat));
+        $('#buttons').append(button);
+    }
+  });
+</script>

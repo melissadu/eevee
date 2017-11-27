@@ -1,0 +1,42 @@
+{% load static %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="{% static 'imgmanip/style.css' %}" />
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<!-- Image Editing -->
+<section>
+  <div class='row'>
+    <div class='col-md-6'>
+      <h3>Name: {{image.img_file.name}}, id: {{image_id}} </h3>
+      <img id="edit_box" src="https://cs.stanford.edu/people/ranjaykrishna/eevee/{{ image.img_file.url }}" class="edit_img" />
+      <div><p>Click position: <span id="click_pos">x:__, y:__</span></p></div>
+    </div>
+    <div class='col-md-6'>
+      <h3> Manipulated image:</h3>
+      <img id="manipulated_image" src="" class="edit_img" />
+    </div>
+  </div>
+  <a href="{% url 'imgmanip:index' %}">Back to upload page</a>
+</section>
+
+<script>
+function manipulate(x, y) {
+  manipulation = 'foveate_naive'
+  $.get( "/imgmanip/manipulate?manipulation=" + manipulation + "&image_id={{image_id}}&x=" + x + "&y=" + y, function( data ) {
+    $('#manipulated_image').attr('src', data + '?' + Date.now());
+  });
+}
+
+$(document).ready(function() {
+  $("#edit_box").click(function(e) {
+    var offset = $(this).offset();
+    var relativeX = (e.pageX - offset.left) / $(this).width();
+    var relativeY = (e.pageY - offset.top) / $(this).height();
+    document.getElementById('click_pos').innerHTML = "x: " + relativeX + ", y: " + relativeY;
+    manipulate(relativeX, relativeY);
+  });
+});
+</script>
+
+

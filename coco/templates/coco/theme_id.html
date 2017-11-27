@@ -1,0 +1,163 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'coco/style.css' %}" />
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<head>
+  <!-- sets 'data' = <json file contents> -->
+  <script src="{% static 'coco/coco50_anns_grouped.json' %}"></script>
+  <script>
+    var objects = [];
+    var image_name = "{{image_name}}";
+    var image_id = {{image_name}};
+    console.log("image_name: " + image_name);
+
+    // var image_id = {{image_id}}
+    var object_cats = []; // Stores object category ids
+    var object_ids = [];
+    var object_centroids = []; // Stores coords of object centroids
+    var im = null; // currently-displayed image
+    var remove_objects = false; // Remove objects instead of clicking to find a replacement
+    var use_custom_obj_cat_id = false; // Specify a custom object category for the replacement
+    custom_obj_cat_id = null; // User-specified custom object category for the replacement
+    // console.log("image_id: " + image_id)
+    
+    // console.log("file name: " + image.img_file.url)
+    console.log("data", data);
+    // =================== scroll load ==========================
+    $(window).load(function(){
+        $('#canvas_template').hide();
+        loadVisualizations();
+    });
+
+    // =============== load visualization by sebd AJAX ======
+    function loadVisualizations(){
+        var req= {};
+        im_id_list = [image_id]
+        obj_coords = data[image_id]
+        createImage(obj_coords)
+    }
+
+    // Create DOM structure for one image
+    function createImage(objs){
+         var canvas_div = $('#canvas_template').clone();
+         canvas_div.addClass('canvas_template');
+         canvas_div.show();
+         var imidDOM = canvas_div.children('.imid');
+         var canvasDOM = canvas_div.children('.canvas_div').children('canvas')[0];
+         objects = objs;
+         im = new Image();
+         im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/segmented_imgs/" + image_id + ".jpg"
+         console.log("image source", im.src);
+         // im.src = "/media/img_uploads/" + image_name + ".jpg"
+          im.objs = objs;
+          im.canvasDOM = canvasDOM;
+          im.canvas_id = canvas_div;
+          im.canvas_div  = canvas_div;
+          canvas_div.appendTo('#contentColumn');
+         console.log("image", im);
+         im.onload = function(){
+             var objs = im.objs;
+             var canvas = im.canvasDOM;
+             var ctx=canvas.getContext("2d");
+             canvas.width = this.width;
+             canvas.height = this.height;
+             console.log("canvas size", canvas.width, canvas.height)
+             ctx.drawImage(this, 0,0);
+             renderImage(objs, im, ctx); // added
+             canvas_div.data('im', this);
+        }
+    }
+
+    function renderImage(objs, im, ctx){
+        ctx.clearRect(0, 0, im.width, im.height);
+        ctx.drawImage(im, 0, 0);
+    }
+
+  </script>
+</head>
+
+<style>
+  #generateButton {
+    background-color: #008CBA; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 15px;
+  }
+</style>
+
+<body>
+  <section>
+    <!-- Display image -->
+    <div id="contentColumn">
+      <div id="canvas_template" style="margin-bottom: 15px; display: block;" class="canvas_template">
+        <div class="imid"></div>
+        <div class="canvas_div" style="margin-top:1px">
+          <canvas class="canvas" id="canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="padded-div" style="padding-top: 20px;">
+      <b>Source Theme: </b>
+      <input type="text" name="src_theme" id="src_theme"/>
+    </div>
+
+    <div class="padded-div" style="padding-top: 20px;">
+      <b>Destination Theme: </b>
+      <input type="text" name="dest_theme" id="dst_theme"/>
+    </div>
+
+    <div class="padded-div">
+      <a href="#" id="generateButton">Generate Image</a>
+    </div>
+  </section>
+</body>
+
+<script>
+  var sourceTheme = "";
+  var destTheme = "";
+  var image_id = {{image_name}};
+  $("#src_theme").on("change", function(){
+    sourceTheme = document.getElementById("src_theme").value; 
+    document.getElementById("generateButton").href = "/coco/obj_interact2/"+image_name+"/"+sourceTheme + "/" + destTheme;
+  })
+  $("#dst_theme").on("change", function(){
+    destTheme = document.getElementById("dst_theme").value;
+    document.getElementById("generateButton").href = "/coco/obj_interact2/"+image_name+"/"+sourceTheme + "/" + destTheme; 
+  })
+  // document.getElementById("generateButton").onclick = function(){
+  //   if(sourceTheme == ""){
+  //     document.getElementById("src_theme").value = "null_1";
+  //   }
+  //   if(destTheme == ""){
+  //     document.getElementById("dst_theme").value = "null_2";
+  //   }
+  // }; 
+  
+  $(document).ready(function() {
+    $("#contentColumn").click(function(e) {
+      var offset = $(this).offset();
+      var relativeX = (e.pageX - offset.left);
+      var relativeY = (e.pageY - offset.top);
+      min_dist_i = select(relativeX, relativeY);
+      console.log("min_dist_i: ", min_dist_i)
+      obj_id = object_ids[min_dist_i];
+      // cat_id = object_cats[min_dist_i];
+      cat_id = (use_custom_obj_cat_id) ? custom_obj_cat_id : object_cats[min_dist_i];
+      if (!remove_objects) {
+        // Go the the attribute selection page
+        window.location = '/coco/obj_attributes/' + image_id + "/" + obj_id + "/" + cat_id
+      } else {
+        // Display object removal
+        im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/halluc_imgs/" + image_id + "_" + obj_id + "_layered.png"
+      }
+
+    });
+  });
+</script>

@@ -1,0 +1,43 @@
+{% load static %}
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="{% static 'imgmanip/style.css' %}" />
+
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<div id='buttons' class="container">
+  {% for cat in categories %}
+  <button  onClick="window.location='/coco/images?category={{cat}}'" class='btn btn-default category'>{{cat}}</button>
+  {% endfor %}
+</div>
+
+<style>
+    .category {
+      margin: 5px;
+    }
+    .h-bar {
+        min-height: 40px;
+        min-width: 10px;
+        background-color: steelblue;
+        margin-bottom: 2px;
+        font: 20px sans-serif;
+        color: #f0f8ff;
+        text-align: left;
+        padding-left: 10px;
+        padding-top: 20px;
+    }
+
+    .control-group {
+        padding-top: 10px;
+        margin: 10px;
+    }
+
+    .clear {
+        clear: both;
+    }
+
+    .selected {
+        background-color: #f08080;
+    }
+</style>
+
+

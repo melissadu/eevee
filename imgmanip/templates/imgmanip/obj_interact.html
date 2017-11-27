@@ -1,0 +1,115 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'imgmanip/style.css' %}" />
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<head>
+  <script src="{% static 'imgmanip/coco50_polys.json' %}"></script>
+  <script>
+    var objects = [];
+    var image_id = {{image_id}}
+    var object_cats = [];
+    console.log(image_id)
+
+    // =================== scroll load ==========================
+    $(window).load(function(){
+        $('#canvas_template').hide();
+        loadVisualizations();
+    });
+
+    // =============== load visualization by sebd AJAX ======
+    function loadVisualizations(){
+        var req= {};
+        im_id_list = [image_id]
+        obj_coords = data[image_id]
+        createImage(obj_coords)
+    }
+
+    // Create DOM structure for one image
+    function createImage(objs){
+         var canvas_div = $('#canvas_template').clone();
+         canvas_div.addClass('canvas_template');
+         canvas_div.show();
+         var imidDOM = canvas_div.children('.imid');
+         var canvasDOM = canvas_div.children('.canvas_div').children('canvas')[0];
+         objects = objs;
+         var im = new Image();
+         im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/segmented_imgs/" + image_id + ".jpg"
+
+          im.objs = objs;
+          im.canvasDOM = canvasDOM;
+          im.canvas_id = canvas_div;
+          im.canvas_div  = canvas_div;
+          canvas_div.appendTo('#contentColumn')
+
+         im.onload = function(){
+             var objs = im.objs;
+             var canvas = im.canvasDOM;
+             var ctx=canvas.getContext("2d");
+
+             canvas.width = this.width;
+             canvas.height = this.height;
+             console.log("canvas size", canvas.width, canvas.height)
+             ctx.drawImage(this, 0,0);
+
+             renderImage(objs, im, ctx); // added
+             renderSegmentation(objs, this, ctx);
+             canvas_div.data('im', this);
+        }
+    }
+
+    // Render segmentation
+    function renderSegmentation(objs, im,  ctx){
+        // objs is list of object dicts (containing poly_x and poly_y)
+        for (j = 0; j < objs.length; j++){
+          obj = objs[j]
+          // set color for each object
+          var r = Math.floor(Math.random() * 255);
+          var g = Math.floor(Math.random() * 255);
+          var b = Math.floor(Math.random() * 255);
+          ctx.fillStyle = 'rgba('+r+','+g+','+b+',0.7)';
+          ctx.beginPath();
+          ctx.moveTo(parseFloat(obj["poly_x"][0]), parseFloat(obj["poly_y"][0]));
+          // Draw each edge of the polygon
+          for (i = 0; i < obj['poly_x'].length; i++){
+               px = obj["poly_x"][i];
+               py = obj["poly_y"][i];
+               ctx.lineTo(Math.round(px), Math.round(py)); // Draw next polygon edge
+           }
+           ctx.lineWidth = 2;
+           ctx.closePath();
+           ctx.fill();
+           ctx.strokeStyle = 'black';
+           ctx.stroke();
+           // Add event listener
+           // obj.addEventListener()
+
+           // Adds object category
+           // var cat_id = objs['object'][i].cat_id;
+           // var name = objs['object'][i].name;
+           // object_cats.append()
+        }
+    }
+
+    function renderImage(objs, im, ctx){
+        ctx.clearRect(0, 0, im.width, im.height);
+        ctx.drawImage(im, 0, 0);
+    }
+
+  </script>
+</head>
+
+<body>
+
+  <!-- Display image -->
+  <div id="contentColumn">
+    <div id="canvas_template" style="margin-bottom: 15px; display: block;" class="canvas_template">
+      <div class="imid"></div>
+      <div class="canvas_div" style="margin-top:1px">
+        <canvas class="canvas" id="canvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+</body>
+

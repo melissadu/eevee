@@ -1,0 +1,288 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'coco/style.css' %}" />
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<head>
+  <!-- sets 'data' = <json file contents> -->
+  <script src="{% static 'coco/coco50_anns_grouped.json' %}"></script>
+  <script>
+    var objects = [];
+    var image_id = {{image_id}} // Could we pass a source theme and a destination theme as well?
+    var object_cats = []; // Stores object category ids
+    var object_ids = []
+    var object_centroids = []; // Stores coords of object centroids
+    var im = null; // currently-displayed image
+    var remove_objects = false // Remove objects instead of clicking to find a replacement
+    var use_custom_obj_cat_id = false // Specify a custom object category for the replacement
+    custom_obj_cat_id = null; // User-specified custom object category for the replacement
+    console.log("image_id: " + image_id)
+
+    // =================== scroll load ==========================
+    $(window).load(function(){
+        $('#canvas_template').hide();
+        loadVisualizations();
+    });
+
+    // =============== load visualization by sebd AJAX ======
+    function loadVisualizations(){
+        var req= {};
+        im_id_list = [image_id]
+        obj_coords = data[image_id]
+        createImage(obj_coords)
+    }
+
+    // Create DOM structure for one image
+    function createImage(objs){
+         // var canvas_div = $('#canvas_template').clone();
+         var canvas_div = $('#canvas_template');
+         // canvas_div.addClass('canvas_template');
+         canvas_div.show();
+         var imidDOM = canvas_div.children('.imid');
+         var canvasDOM = canvas_div.children('.canvas_div').children('canvas')[0];
+         objects = objs;
+         im = new Image();
+         im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/segmented_imgs/" + image_id + ".jpg"
+
+          im.objs = objs;
+          im.canvasDOM = canvasDOM;
+          im.canvas_id = canvas_div;
+          im.canvas_div  = canvas_div;
+          canvas_div.appendTo('#contentColumn')
+
+         im.onload = function(){
+             var objs = im.objs;
+             var canvas = im.canvasDOM;
+             var ctx=canvas.getContext("2d");
+
+             canvas.width = this.width;
+             canvas.height = this.height;
+             console.log("canvas size", canvas.width, canvas.height)
+             ctx.drawImage(this, 0,0);
+
+             renderImage(objs, im, ctx); // added
+             renderSegmentation(objs, this, ctx, canvas);
+             canvas_div.data('im', this);
+        }
+    }
+
+    // Render segmentation, where segmentation identifies the different objects.
+    function renderSegmentation(objs, im,  ctx, canvas) {
+        // objs is list of object dicts (containing 'segmentation' attribute), one for each segmented object
+        for (j = 0; j < objs.length; j++) {
+          obj = objs[j];
+          var obj_id = obj["id"];
+          object_ids.push(obj_id);
+          var x_coord_sum = 0.0;
+          var y_coord_sum = 0.0;
+          var num_coords = 0.0;
+
+          // set color for each object
+          var r = Math.floor(Math.random() * 255);
+          var g = Math.floor(Math.random() * 255);
+          var b = Math.floor(Math.random() * 255);
+          // ctx.fillStyle = 'rgba('+r+','+g+','+b+',0.7)';
+          // ctx.beginPath();
+
+          // Draw each edge of the polygon
+          // TEMP - to get the color segmentation back, comment back out the "ctx" lines
+          seg = obj["segmentation"]
+          for (seg_i = 0; seg_i < seg.length; seg_i++) {
+            cur_seg = seg[seg_i]
+            var poly = [];
+            while(cur_seg.length) poly.push(cur_seg.splice(0,2));
+            // ctx.moveTo(parseFloat(poly[0][0]), parseFloat(poly[0][1]));
+            num_coords += poly.length
+
+            for (i = 0; i < poly.length; i++){
+                px = poly[i][0]
+                py = poly[i][1]
+                // ctx.lineTo(Math.round(px), Math.round(py)); // Draw next polygon edge
+                x_coord_sum += px
+                y_coord_sum += py
+             }
+             // ctx.lineWidth = 2;
+             // ctx.closePath();
+             // ctx.fill();
+             // ctx.strokeStyle = 'black';
+             // ctx.stroke();
+          }
+
+           // Adds object category
+           var cat_id = obj["category_id"];
+           object_cats.push(cat_id);
+
+           // Adds object centroid
+           var x_coord_mean = x_coord_sum / num_coords;
+           var y_coord_mean = (y_coord_sum / num_coords); 
+           var y_coord_mean2 = y_coord_mean + 120;
+           var centroid = [x_coord_mean, y_coord_mean];
+           object_centroids.push(centroid);
+           console.log("centroid: " + centroid)
+
+           // Create a div and add it onto the segmented object.
+           var div = document.createElement("div");
+           div.id = "a" + obj_id.toString();
+           div.style.width = "70px";
+           div.style.border = "1px solid black";
+           div.style.position = "absolute";
+           div.innerHTML = "Object ID" + obj_id;
+           div.style.left = x_coord_mean +'px';
+           div.style.top = y_coord_mean2 +'px';
+           div.style.visibility = "visible";
+           div.style.background = "gray";
+           div.style.opacity = "0.7";
+           document.getElementById("outerCanvas").appendChild(div);
+
+        }
+        console.log("object_cats: " + object_cats)
+    }
+
+    function renderImage(objs, im, ctx){
+        ctx.clearRect(0, 0, im.width, im.height);
+        ctx.drawImage(im, 0, 0);
+    }
+
+  </script>
+</head>
+
+<style>
+  #editButton {
+    background-color: #008CBA; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  .padded-div1 {
+    padding-top: 10px;
+  }
+</style>
+
+<body>
+  <section>
+    <div style="width: 100%; overflow: hidden;">
+      <!-- Display image -->
+      <div id="contentColumn" style="width: 700px; float: left;">
+        <div id="canvas_template" style="margin-bottom: 15px; display: block;" class="canvas_template">
+          <div class="imid"></div>
+          <div class="canvas_div" id="outerCanvas" style="margin-top:1px">
+            <canvas class="canvas" id="canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <div style="margin-left: 740px;">
+        <div> Based on your source theme <p style="font-size:30px; color: red;font-weight: bold;display: inline;">{{src_theme}}</p> and your destination theme <p style="font-size:30px;color:red;font-weight: bold;display: inline;">{{dst_theme}} </p>, here are the changes we recommend:
+        </div>
+        {% if edits %}
+            {% for edit in edits %}
+              <div class="padded-div1"><input type="checkbox" name="edit" value="A">{{edit}}<br></div>
+            {% endfor %}
+            <a href="#" id="editButton">Perform Changes</a>
+        {% else %}
+            <p>No suggested edits.</p>
+        {% endif %}
+<!--         <form action="" style="padding-top: 10px;">
+          <div class="padded-div1"><input type="checkbox" name="edit" value="A"> Suggested Edit 1 <br></div>
+          <div class="padded-div1"><input type="checkbox" name="edit" value="B" checked> Suggested Edit 2 <br></div>
+          <div class="padded-div">
+          <a href="#" id="editButton">Perform Changes</a>
+          </div>  -->
+          <!-- <input type="submit" value="Submit"> -->
+        <!-- </form>  -->
+      </div>
+    </div>
+
+  </section>
+</body>
+
+<script>
+
+  $(document).ready(function() {
+    // Add the object IDs here. -- object_ids
+
+
+    // Action when objects are clicked
+    $("#contentColumn").click(function(e) {
+      var offset = $(this).offset();
+      var relativeX = (e.pageX - offset.left);
+      var relativeY = (e.pageY - offset.top);
+      min_dist_i = select(relativeX, relativeY);
+      console.log("min_dist_i: ", min_dist_i)
+      obj_id = object_ids[min_dist_i];
+      // cat_id = object_cats[min_dist_i];
+      cat_id = (use_custom_obj_cat_id) ? custom_obj_cat_id : object_cats[min_dist_i];
+      if (!remove_objects) {
+        // Go the the attribute selection page
+        window.location = '/coco/obj_attributes/' + image_id + "/" + obj_id + "/" + cat_id
+      } else {
+        // Display object removal
+        im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/halluc_imgs/" + image_id + "_" + obj_id + "_layered.png"
+      }
+
+    });
+  });
+
+  // Display buttons for possible object categories
+  $.get('/media/attributes/category_id2name.json', function(catid2name) {
+    for (var cat_id in catid2name) {
+        obj_type = catid2name[cat_id]
+        var button = $("<input type='radio' name='obj_type' value='" + cat_id + "' onclick='update_cat_id(this);'>" + obj_type + "<br>")
+        $('#buttons').append(button);
+    }
+  });
+
+  // Select to replace object
+  function update_remove_objects(chk_bx){
+    if (chk_bx.checked) {
+      // Display object removal image
+      remove_objects = true;
+    } else {
+      // Hide object removal image
+      // Go to attribute selection page when object is clicked
+      remove_objects = false;
+
+    }
+  }
+
+  // Select what object replacement type to make
+  function update_obj_repl_type(radio_button) {
+    obj_cats = document.getElementById('custom_object_categories');
+    if (radio_button.value == 'attr') {
+      use_custom_obj_cat_id = false
+      obj_cats.style.display = 'none'; // Hide object category radio buttons
+    } else {
+      use_custom_obj_cat_id = true
+      obj_cats.style.display = 'inherit'; // Show object category radio buttons
+    }
+  }
+
+  function update_cat_id(radio_button) {
+    cat_id = radio_button.value;
+    custom_obj_cat_id = cat_id;
+  }
+
+  // Figure out if object has been clicked -- not the most accurate
+  function select(x_click, y_click) {
+    // Calculate distance between click coords and each object centroid
+    console.log("click_coord", x_click, y_click)
+    var min_dist = Infinity;
+    var min_dist_i = 0;
+    for (i = 0; i < object_centroids.length; i++) {
+      x_obj = object_centroids[i][0];
+      y_obj = object_centroids[i][1];
+      var dist = Math.sqrt(Math.pow((x_click - x_obj), 2) + Math.pow((y_click - y_obj), 2))
+      if (dist < min_dist) {
+        min_dist = dist;
+        min_dist_i = i;
+      }
+    }
+
+    // return id of object with lowest distance
+    return min_dist_i
+  }
+</script>

@@ -1,0 +1,150 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'coco/style.css' %}" />
+<script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<head>
+  <script src="{% static 'coco/coco50_anns_grouped.json' %}"></script>
+  <script>
+    var objects = [];
+    var image_id = {{image_id}}
+    var obj_id = {{obj_id}}
+    var cat_id = {{cat_id}}
+    var cat_name = "{{cat_name}}"
+    console.log("image_id: " + image_id)
+    console.log("obj_id: " + obj_id)
+
+    // =================== scroll load ==========================
+    $(window).load(function(){
+        $('#canvas_template').hide();
+        loadVisualizations();
+    });
+
+    // =============== load visualization by sebd AJAX ======
+    function loadVisualizations(){
+        var req= {};
+        im_id_list = [image_id]
+        obj_coords = data[image_id]
+        createImage(obj_coords)
+    }
+
+    // Create DOM structure for one image
+    function createImage(objs){
+         var canvas_div = $('#canvas_template').clone();
+         canvas_div.addClass('canvas_template');
+         canvas_div.show();
+         var imidDOM = canvas_div.children('.imid');
+         var canvasDOM = canvas_div.children('.canvas_div').children('canvas')[0];
+         objects = objs;
+         var im = new Image();
+         im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/segmented_imgs/" + image_id + ".jpg"
+
+          im.objs = objs;
+          im.canvasDOM = canvasDOM;
+          im.canvas_id = canvas_div;
+          im.canvas_div  = canvas_div;
+          canvas_div.appendTo('#contentColumn')
+
+         im.onload = function(){
+             var objs = im.objs;
+             var canvas = im.canvasDOM;
+             var ctx=canvas.getContext("2d");
+
+             canvas.width = this.width;
+             canvas.height = this.height;
+             console.log("canvas size", canvas.width, canvas.height)
+             ctx.drawImage(this, 0,0);
+
+             renderImage(objs, im, ctx); // added
+             renderSegmentation(objs, this, ctx, canvas);
+             canvas_div.data('im', this);
+        }
+    }
+
+    // Render segmentation
+    function renderSegmentation(objs, im,  ctx, canvas) {
+      // objs is list of object dicts (containing 'segmentation' attribute)
+      for (j = 0; j < objs.length; j++) {
+        obj = objs[j]
+        if (obj["id"] === obj_id) {
+          // set color for each object
+          var r = Math.floor(Math.random() * 255);
+          var g = Math.floor(Math.random() * 255);
+          var b = Math.floor(Math.random() * 255);
+          ctx.fillStyle = 'rgba('+r+','+g+','+b+',0.7)';
+          ctx.beginPath();
+
+          // Draw each edge of the polygon
+          seg = obj["segmentation"]
+          // if( Object.prototype.toString.call( seg ) === '[object Array]' ) {
+          for (seg_i = 0; seg_i < seg.length; seg_i++) {
+            cur_seg = seg[seg_i]
+            var poly = [];
+            while(cur_seg.length) poly.push(cur_seg.splice(0,2));
+            ctx.moveTo(parseFloat(poly[0][0]), parseFloat(poly[0][1]));
+
+            for (i = 0; i < poly.length; i++){
+                px = poly[i][0]
+                py = poly[i][1]
+                ctx.lineTo(Math.round(px), Math.round(py)); // Draw next polygon edge
+             }
+             ctx.lineWidth = 2;
+             ctx.closePath();
+             ctx.fill();
+             ctx.strokeStyle = 'black';
+             ctx.stroke();
+          }
+          break
+        }
+      }
+    }
+
+    function renderImage(objs, im, ctx){
+        ctx.clearRect(0, 0, im.width, im.height);
+        ctx.drawImage(im, 0, 0);
+    }
+
+  </script>
+</head>
+
+<body>
+  <section>
+    <!-- Display image -->
+    <div id="contentColumn">
+      <h3>Selected object: {{cat_name}}</h3>
+      <div id="canvas_template" style="margin-bottom: 15px; display: block;" class="canvas_template">
+        <div class="imid"></div>
+        <div class="canvas_div" style="margin-top:1px">
+          <canvas class="canvas" id="canvas"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <h3>Available attributes:</h3>
+    <div id='buttons' class="container">
+    </div>
+  </section>
+</body>
+
+
+<script>
+  // Display buttons for possible object attributes
+  $.get('/media/attributes/coco_attributes_with_images.json', function(cat2atr) {
+    for (var cat in cat2atr) {
+        console.log(cat_name)
+        if (cat === cat_name) {
+          for (var attr_id in cat2atr[cat_name]) {
+            var cur_attr = cat2atr[cat_name][attr_id].attribute
+            var cur_count = cat2atr[cat_name][attr_id].count
+            var button = $("<button style='margin: 5px' class='btn btn-default' onClick='reply_click(this.id)' id='" + attr_id + "' >" + cur_attr + ": " + cur_count + "</button>")
+            $('#buttons').append(button);
+          }
+        }
+    }
+  });
+
+  function reply_click(attr_id) {
+    window.location = '/coco/obj_replacements/' + image_id + "/" + obj_id + "/" + cat_id + "/" + attr_id
+  }
+
+</script>

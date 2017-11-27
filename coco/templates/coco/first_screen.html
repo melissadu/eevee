@@ -1,0 +1,44 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'coco/style.css' %}" />
+
+<a class="nav_bar"><h2>Eevee Image Manipulation</h2></a>
+
+<!-- Upload form -->
+<section>
+    <h3>Upload new image</h3>
+    <!-- Change URL once you figure out where it should be taken -->
+    <form action="{% url 'coco:first_screen' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <p>{{ form.non_field_errors }}</p>
+        <p>{{ form.img_file.label_tag }}</p>
+        <p>
+            {{ form.img_file.errors }}
+            {{ form.img_file }}
+        </p>
+        <p><input type="submit" value="Upload" /></p>
+    </form>
+</section>
+
+<hr>
+
+<!-- List of uploaded images -->
+<section>
+    <h3>Uploaded images</h3>
+    {% if images %}
+        {% for image in images %}
+            <div>
+                <!--create new image update page-->
+<!--                 <div>media url: {{MEDIA_URL}}</div>
+                <div>file url: {{ image.img_file.url }}</div>
+                <div>file name: {{ image.img_file.name }}</div> -->
+                <a href="/coco/theme_id/{{ image.img_name}}">{{ image.img_name }}</a>
+                <!-- <a href="/coco/theme_id/{{ image.id }}">{{ image.img_file.name }}</a> -->
+                <img src="{{MEDIA_URL}}{{ image.img_file.url }}" class="preview_img" />
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No images.</p>
+    {% endif %}
+</section>
+
+

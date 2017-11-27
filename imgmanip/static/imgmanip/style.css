@@ -1,0 +1,30 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+section {
+  padding: 50px;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+}
+
+.nav_bar {
+  display:block;
+  padding: 20px;
+  background-color: #3066BE;
+  color: #FFF;
+}
+
+.edit_img {
+  max-width: 100%;
+  height: auto;
+  width: auto\9;
+  /*margin: 20px 0px 20px 0px;*/
+}
+
+.preview_img {
+  max-height: 30px;
+  margin-left: 30px;
+  margin-top: 10px;
+}
