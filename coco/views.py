@@ -90,8 +90,10 @@ def obj_interact2(request, image_id, src_theme, dst_theme):
     print "IMAGES", images
 
     # Have some function where you know what edits to make to what object
+    # Hardcoded for the elephant pic (id = 30065)
     edits = {
-        "a": "Replace Object 293011",
+        "580012": "Replace Object 293011",
+        "580416": "Replace Object 580416",
         "b": "Add an object to the scene"
     }
 

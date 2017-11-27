@@ -16,7 +16,7 @@
     var remove_objects = false // Remove objects instead of clicking to find a replacement
     var use_custom_obj_cat_id = false // Specify a custom object category for the replacement
     custom_obj_cat_id = null; // User-specified custom object category for the replacement
-    console.log("image_id: " + image_id)
+    var isClicked = true;
 
     // =================== scroll load ==========================
     $(window).load(function(){
@@ -68,6 +68,9 @@
 
     // Render segmentation, where segmentation identifies the different objects.
     function renderSegmentation(objs, im,  ctx, canvas) {
+        console.log("OBJS", objs);
+        console.log("OBJECTS", objects);
+
         // objs is list of object dicts (containing 'segmentation' attribute), one for each segmented object
         for (j = 0; j < objs.length; j++) {
           obj = objs[j];
@@ -122,16 +125,19 @@
 
            // Create a div and add it onto the segmented object.
            var div = document.createElement("div");
-           div.id = "a" + obj_id.toString();
-           div.style.width = "70px";
+           div.id = "a" + obj_id.toString(); // ID of the id-box is "a" + objectID
+           div.style.width = "70px"; // change this when clicked
+           div.style.height = "auto"; // change this when clicked
            div.style.border = "1px solid black";
            div.style.position = "absolute";
            div.innerHTML = "Object ID" + obj_id;
            div.style.left = x_coord_mean +'px';
            div.style.top = y_coord_mean2 +'px';
-           div.style.visibility = "visible";
-           div.style.background = "gray";
-           div.style.opacity = "0.7";
+           div.style.background = "gray"; // change this when clicked
+           div.style.opacity = "0.7"; // change this when clicked
+           div.style.textAlign = "center";
+           div.style.fontSize = "initial";
+           div.style.fontWeight = "normal";
            document.getElementById("outerCanvas").appendChild(div);
 
         }
@@ -143,14 +149,31 @@
         ctx.drawImage(im, 0, 0);
     }
 
-    // oddly enough, idVal is actually the entire div, whose id is idVal.id
     function displayElem(idVal) {
-      var div = document.getElementById(idVal.id);
+      var div = document.getElementById(idVal.toString());
       if(div.style.display == "none"){
         div.style.display = "inherit";
       } else {
         div.style.display = "none";
+      } 
+      var idBox = document.getElementById("a" + idVal.toString());
+      if(isClicked){
+        idBox.style.width = "140px"; 
+        idBox.style.height = "70px";
+        idBox.style.background = "pink";
+        idBox.style.opacity = "1.0";
+        idBox.style.fontSize = "20px";
+        idBox.style.fontWeight = "bold";
+      } else {
+        // default
+        idBox.style.width = "70px"; 
+        idBox.style.height = "auto";
+        idBox.style.background = "gray";
+        idBox.style.opacity = "0.7";
+        idBox.style.fontSize = "initial";
+        idBox.style.fontWeight = "normal";
       }
+      isClicked = !isClicked;
     }
 
   </script>
