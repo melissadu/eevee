@@ -176,7 +176,7 @@
           console.log("replace_ids", replace_ids);
           for (var replace_id in replace_ids) {
             var replace_item_id = replace_ids[replace_id];
-            box.innerHTML += "<input type='radio' name='obj_type' value='" + replace_item_id.toString() + "' onclick='update_cat_id(this);'>" + category_id_names[replace_item_id] + "<br>";
+            box.innerHTML +=  "<input type='radio' name='obj_type' value='" + replace_item_id.toString() + "' onclick='update_obj_repl_type(this);'>" + category_id_names[replace_item_id] + "<br>" + "<div id='" + replace_item_id + "' style='display:none'></div>";
           }
         }
       }
@@ -240,9 +240,9 @@
   }
   .newBox {
     margin-top: 15px;
-    width: 500px;
+    width: 300px;
     height: 150px;
-    border:1px solid red; 
+    border:1px solid black; 
   }
 </style>
 
@@ -263,10 +263,10 @@
         </div>
         {% if edits %}
             {% for myKey, myValue in edits.items %}
-              <div class="linkClass" onclick="displayElem({{myKey}})">
-                {{myValue}} <br>
+              <div class="linkClass">
+                <p onclick="displayElem({{myKey}})" style="margin: 0;">{{myValue}}</p>
                 <div class="newBox" id="{{myKey}}" style="display:none;">
-                    <div style="display:inherit; border:1px solid blue" id="replace{{myKey}}"> </div>
+                    <div style="display:inherit" id="replace{{myKey}}"> </div>
                 </div>
               </div>
               <!-- <a href="#" class="padded-div1" id="{{myKey}}">{{myValue}}</a> --><br>
@@ -334,14 +334,38 @@
 
   // Select what object replacement type to make
   function update_obj_repl_type(radio_button) {
-    obj_cats = document.getElementById('custom_object_categories');
-    if (radio_button.value == 'attr') {
-      use_custom_obj_cat_id = false
-      obj_cats.style.display = 'none'; // Hide object category radio buttons
-    } else {
-      use_custom_obj_cat_id = true
-      obj_cats.style.display = 'inherit'; // Show object category radio buttons
-    }
+     console.log("VALUE", radio_button.value); // value is equal to the replace obj id
+     // create Div, and add it under the input
+
+     // instead of creating a div, we will just need to toggle the display
+     var div = document.getElementById(radio_button.value);
+     // div.id = "a" + obj_id.toString(); // ID of the id-box is "a" + objectID
+     div.style.width = "70px"; 
+     div.style.height = "70px";
+     div.style.border = "1px solid black";
+     if(div.style.display == 'none'){
+      div.style.display = 'inherit';
+     } else {
+      div.style.display = 'none';
+     }
+     // div.style.position = "absolute";
+     // div.innerHTML = "Object ID" + obj_id;
+     // div.style.left = x_coord_mean +'px';
+     // div.style.top = y_coord_mean2 +'px';
+     // div.style.background = "gray"; // change this when clicked
+     // div.style.opacity = "0.7"; // change this when clicked
+     // div.style.textAlign = "center";
+     // div.style.fontSize = "initial";
+     // div.style.fontWeight = "normal";
+     
+    // obj_cats = document.getElementById('custom_object_categories');
+    // if (radio_button.value == 'attr') {
+    //   use_custom_obj_cat_id = false
+    //   obj_cats.style.display = 'none'; // Hide object category radio buttons
+    // } else {
+    //   use_custom_obj_cat_id = true
+    //   obj_cats.style.display = 'inherit'; // Show object category radio buttons
+    // }
   }
 
   function update_cat_id(radio_button) {
