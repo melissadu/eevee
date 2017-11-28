@@ -18,8 +18,9 @@
     custom_obj_cat_id = null; // User-specified custom object category for the replacement
     var isClicked = true;
     var selectedObjectCategories = [];
-    var replace_objects = {}
-    var category_id_names = {}
+    var replace_objects = {};
+    var category_id_names = {};
+    var img_attributes = {};
 
     // =================== scroll load ==========================
     $(window).load(function(){
@@ -166,6 +167,17 @@
         replace_objects[curr_obj_id] = getReplaceObjects(curr_obj_id); // for now, this is hard-coded  
       }
     }
+
+    function appendAttributes(replace_item_id){
+      var div = document.getElementById(replace_item_id);
+      var attributeByName = category_id_names[replace_item_id];
+      var imgAttributes1 = img_attributes[attributeByName]; // an array of JSON objs
+      
+      // Only select the top 10 attributes
+      for(var i=0; i<10; i++){
+        div.innerHTML += "<button style='margin: 5px' class='btn btn-default' onClick='reply_click(this.id)' id='attr" + i + "' >" + imgAttributes1[i].attribute + ": " + imgAttributes1[i].count + "</button>";
+      }
+    }
     
     function appendRadioBoxes() {
       // Radio Checkmarks
@@ -177,6 +189,7 @@
           for (var replace_id in replace_ids) {
             var replace_item_id = replace_ids[replace_id];
             box.innerHTML +=  "<input type='radio' name='obj_type' value='" + replace_item_id.toString() + "' onclick='update_obj_repl_type(this);'>" + category_id_names[replace_item_id] + "<br>" + "<div id='" + replace_item_id + "' style='display:none'></div>";
+            appendAttributes(replace_item_id);
           }
         }
       }
@@ -315,6 +328,7 @@
 
      // instead of creating a div, we will just need to toggle the display
      var div = document.getElementById(radio_button.value);
+     // Set innerHTML of this div to be the top 10 object attributes
      // div.id = "a" + obj_id.toString(); // ID of the id-box is "a" + objectID
      div.style.width = "70px"; 
      div.style.height = "70px";
@@ -329,6 +343,25 @@
   function update_cat_id(radio_button) {
     cat_id = radio_button.value;
     custom_obj_cat_id = cat_id;
+  }
+
+  $.get('/media/attributes/coco_attributes_with_images.json', function(cat2atr) {
+    img_attributes = jQuery.extend(true, {}, cat2atr);
+    // for (var cat in cat2atr) {
+    //     console.log(cat_name)
+    //     if (cat === cat_name) {
+    //       for (var attr_id in cat2atr[cat_name]) {
+    //         var cur_attr = cat2atr[cat_name][attr_id].attribute
+    //         var cur_count = cat2atr[cat_name][attr_id].count
+    //         var button = $("<button style='margin: 5px' class='btn btn-default' onClick='reply_click(this.id)' id='" + attr_id + "' >" + cur_attr + ": " + cur_count + "</button>")
+    //         $('#buttons').append(button);
+    //       }
+    //     }
+    // }
+  });
+
+  function reply_click(attr_id) {
+    window.location = '/coco/obj_replacements/' + image_id + "/" + obj_id + "/" + cat_id + "/" + attr_id
   }
 
 </script>
