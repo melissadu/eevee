@@ -290,30 +290,6 @@
 </body>
 
 <script>
-  $(document).ready(function() {
-    // Add the object IDs here. -- object_ids
-
-    // Action when objects are clicked
-    $("#contentColumn").click(function(e) {
-      var offset = $(this).offset();
-      var relativeX = (e.pageX - offset.left);
-      var relativeY = (e.pageY - offset.top);
-      min_dist_i = select(relativeX, relativeY);
-      console.log("min_dist_i: ", min_dist_i)
-      obj_id = object_ids[min_dist_i];
-      // cat_id = object_cats[min_dist_i];
-      cat_id = (use_custom_obj_cat_id) ? custom_obj_cat_id : object_cats[min_dist_i];
-      if (!remove_objects) {
-        // Go the the attribute selection page
-        window.location = '/coco/obj_attributes/' + image_id + "/" + obj_id + "/" + cat_id
-      } else {
-        // Display object removal
-        im.src = "https://cs.stanford.edu/people/ranjaykrishna/eevee/media/halluc_imgs/" + image_id + "_" + obj_id + "_layered.png"
-      }
-
-    });
-  });
-
   // Display buttons for possible object categories
   $.get('/media/attributes/category_id2name.json', function(catid2name) {
     category_id_names = jQuery.extend(true, {}, catid2name);
@@ -348,24 +324,6 @@
      } else {
       div.style.display = 'none';
      }
-     // div.style.position = "absolute";
-     // div.innerHTML = "Object ID" + obj_id;
-     // div.style.left = x_coord_mean +'px';
-     // div.style.top = y_coord_mean2 +'px';
-     // div.style.background = "gray"; // change this when clicked
-     // div.style.opacity = "0.7"; // change this when clicked
-     // div.style.textAlign = "center";
-     // div.style.fontSize = "initial";
-     // div.style.fontWeight = "normal";
-     
-    // obj_cats = document.getElementById('custom_object_categories');
-    // if (radio_button.value == 'attr') {
-    //   use_custom_obj_cat_id = false
-    //   obj_cats.style.display = 'none'; // Hide object category radio buttons
-    // } else {
-    //   use_custom_obj_cat_id = true
-    //   obj_cats.style.display = 'inherit'; // Show object category radio buttons
-    // }
   }
 
   function update_cat_id(radio_button) {
@@ -373,23 +331,4 @@
     custom_obj_cat_id = cat_id;
   }
 
-  // Figure out if object has been clicked -- not the most accurate
-  function select(x_click, y_click) {
-    // Calculate distance between click coords and each object centroid
-    console.log("click_coord", x_click, y_click)
-    var min_dist = Infinity;
-    var min_dist_i = 0;
-    for (i = 0; i < object_centroids.length; i++) {
-      x_obj = object_centroids[i][0];
-      y_obj = object_centroids[i][1];
-      var dist = Math.sqrt(Math.pow((x_click - x_obj), 2) + Math.pow((y_click - y_obj), 2))
-      if (dist < min_dist) {
-        min_dist = dist;
-        min_dist_i = i;
-      }
-    }
-
-    // return id of object with lowest distance
-    return min_dist_i
-  }
 </script>
