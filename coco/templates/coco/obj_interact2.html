@@ -175,7 +175,7 @@
       
       // Only select the top 10 attributes
       for(var i=0; i<10; i++){
-        div.innerHTML += "<button style='margin: 5px' class='btn btn-default' onClick='reply_click(this.id)' id='attr" + i + "' >" + imgAttributes1[i].attribute + ": " + imgAttributes1[i].count + "</button>";
+        div.innerHTML += "<button style='margin: 5px' class='btn btn-default' onClick='reply_click(this.id, this.parentNode.id)' id='" + i + "' >" + imgAttributes1[i].attribute + ": " + imgAttributes1[i].count + "</button>";
       }
     }
     
@@ -346,21 +346,12 @@
 
   $.get('/media/attributes/coco_attributes_with_images.json', function(cat2atr) {
     img_attributes = jQuery.extend(true, {}, cat2atr);
-    // for (var cat in cat2atr) {
-    //     console.log(cat_name)
-    //     if (cat === cat_name) {
-    //       for (var attr_id in cat2atr[cat_name]) {
-    //         var cur_attr = cat2atr[cat_name][attr_id].attribute
-    //         var cur_count = cat2atr[cat_name][attr_id].count
-    //         var button = $("<button style='margin: 5px' class='btn btn-default' onClick='reply_click(this.id)' id='" + attr_id + "' >" + cur_attr + ": " + cur_count + "</button>")
-    //         $('#buttons').append(button);
-    //       }
-    //     }
-    // }
   });
 
-  function reply_click(attr_id) {
-    window.location = '/coco/obj_replacements/' + image_id + "/" + obj_id + "/" + cat_id + "/" + attr_id
+  function reply_click(attr_id, cat_id) {
+    var div = document.getElementById(cat_id);
+    var obj_id = (div.parentNode).parentNode.id;
+    window.location = '/coco/obj_replacements/' + image_id + "/" + obj_id + "/" + cat_id + "/" + attr_id;
   }
 
 </script>
