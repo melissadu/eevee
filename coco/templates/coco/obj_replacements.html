@@ -87,11 +87,14 @@
 
 <body>
   <section>
+    <h2>Click outside of the red bounding box to reposition the image.</h3>
     <h3>Selected object: {{cat_name}}</h3>
     <h3>Selected attribute: {{attr_name}}</h3>
     <div>
       <b>Show slider?</b>
       <input type="checkbox" name="show_replacements" onchange="update_show_slider(this);" checked />
+      <b>Show red bounding box?</b>
+      <input type="checkbox" name="show_replacements" onchange="" checked />
     </div>
 
     <!-- Display image -->
@@ -244,30 +247,6 @@ var imageSlider = $('#slider1').CircularSlider({
         ui.find('.jcs-indicator').css({'background' : color });
     }
   });
-
-// var imageSlider2 = $('#slider2').slider({
-//     min : 0,
-//     max: 359,
-//     // formLabel : function(value, prefix, suffix) {
-//     //     var index = Math.round((value * repl_ids.length) / 360);
-//     //     var canvases = document.querySelectorAll(".repl_canvas");
-//     //     for (var i = 0; i < canvases.length; i++) {
-//     //         canvases[i].style.display = 'none';
-//     //     }
-//     //     $('#' + String(repl_ids[index])).show();
-//     // },
-//     slide : function(ui, value) {
-//         var color = 'rgba(0,0,0, 0.7)'
-//         ui.find('.jcs').css({'border-color' : color });
-//         ui.find('.jcs-indicator').css({'background' : color });
-//         var index = Math.round((value * repl_ids.length) / 360);
-//     //     var canvases = document.querySelectorAll(".repl_canvas");
-//     //     for (var i = 0; i < canvases.length; i++) {
-//     //         canvases[i].style.display = 'none';
-//     //     }
-//     //     $('#' + String(repl_ids[index])).show()
-//     }
-//   });
 
   var slider = document.querySelector("#slider1");
   sliderY = orig_bbox[1] + 150;

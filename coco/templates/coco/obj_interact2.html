@@ -66,6 +66,7 @@
 
              renderImage(objs, im, ctx); // added
              renderSegmentation(objs, this, ctx, canvas);
+             getEdits();
              bestReplacementObjects();
              appendRadioBoxes()
              canvas_div.data('im', this);
@@ -150,13 +151,68 @@
         ctx.drawImage(im, 0, 0);
     }
 
+    edits100318 = {
+      "589830": "Replace Object 589830",
+      "588983": "Replace Object 588983",
+      "b": "Add an object to the scene"
+    }
+
+    function getEdits(){
+      var div = document.getElementById("pictureChair");
+      if(image_id == 100318){
+        var keys = Object.keys(edits100318)
+        for(var i=0; i< keys.length; i++){
+          div.innerHTML += "<p onclick='displayElem(" + keys[i] + ")' style='margin: 0;'>" + edits100318[keys[i]] + "</p><div class='newBox' id='" + keys[i] + "' style='display:none;''><div style='display:inherit' id='replace" + keys[i] + "'></div></div>";  
+          console.log("Key", edits100318[keys[i]]);
+        }
+      } else if(image_id == 158754){
+        var edits = {
+         "53902": "Replace Object 53902",
+         "a": "Add an object to the scene"
+        }
+        var keys = Object.keys(edits);
+        for(var i=0; i< keys.length; i++){
+          div.innerHTML += "<div class='linkClass'><p onclick='displayElem(" + keys[i] + ")' style='margin: 0;'>" + edits[keys[i]] + "</p><div class='newBox' id='" + keys[i] + "' style='display:none;''><div style='display:inherit' id='replace" + keys[i] + "'></div></div></div>";  
+        }
+      } else if(image_id == 66166){
+        var edits = {
+          "1545437": "Replace Object 1545437",
+          "1491604": "Replace Object 1491604"
+        }
+        var keys = Object.keys(edits);
+        for(var i=0; i< keys.length; i++){
+          div.innerHTML += "<div class='linkClass'><p onclick='displayElem(" + keys[i] + ")' style='margin: 0;'>" + edits[keys[i]] + "</p><div class='newBox' id='" + keys[i] + "' style='display:none;''><div style='display:inherit' id='replace" + keys[i] + "'></div></div></div>";  
+        }
+      }
+        // for (var key in name) {
+        //   // if (name.hasOwnProperty(key)) {
+        //   //   console.log(key + " -> " + name[key]);
+        //   // }
+        // }
+        // div.innerHTML += "<p onclick='displayElem({{myKey}})' style='margin: 0;'>{{myValue}}</p><div class='newBox' id='{{myKey}}' style='display:none;''><div style='display:inherit' id='replace{{myKey}}''></div></div>";        
+    }
+
     // id = id of the object
     function getReplaceObjects(id){
       // Currently hardcoded
-      if(id == 580012){
+      if(id == 588983){
+        return [20, 21, 23]
+      } else if(id == 580012){
         return [19, 20, 25]
       } else if(id == 580416){
         return [20, 21, 23]
+      } else if (id == 593697){ // image id 13150
+        return []
+      } else if(id == 53902) { // image id 158754
+        return [3, 7, 18]
+      } else if (id == 1545437){ // image id 66166
+        return [53, 61, 59]
+      } else if(id == 1491604) { // image id 66166
+        return [46, 44, 51]
+      } else if (id == 41747){
+        return []
+      } else if(id == 589830) {
+        return [18, 19, 20, 21]
       }
     }
 
@@ -204,8 +260,8 @@
       } else {
         div.style.display = "none";
       } 
-
-      // Object "Display"
+      console.log("IDVAL", idVal);
+      // Object "Display" -- the thing that identifies the object on the image canvas
       var idBox = document.getElementById("a" + idVal.toString());
       if(isClicked){
         idBox.style.width = "140px"; 
@@ -274,19 +330,21 @@
       <div style="margin-left: 740px;">
         <div style="padding-bottom: 15px;"> Based on your source theme <p style="font-size:30px; color: red;font-weight: bold;display: inline;">{{src_theme}}</p> and your destination theme <p style="font-size:30px;color:red;font-weight: bold;display: inline;">{{dst_theme}} </p>, here are the changes we recommend:
         </div>
+          <div id="pictureChair">
+          </div>
         {% if edits %}
             {% for myKey, myValue in edits.items %}
-              <div class="linkClass">
+<!--               <div class="linkClass">
                 <p onclick="displayElem({{myKey}})" style="margin: 0;">{{myValue}}</p>
                 <div class="newBox" id="{{myKey}}" style="display:none;">
                     <div style="display:inherit" id="replace{{myKey}}"> </div>
                 </div>
-              </div>
-              <!-- <a href="#" class="padded-div1" id="{{myKey}}">{{myValue}}</a> --><br>
+              </div> -->
+              <!-- <a href="#" class="padded-div1" id="{{myKey}}">{{myValue}}</a><br> -->
               <!-- <div class="padded-div1"><input type="checkbox" name="edit" value="A">{{edit}}<br></div> -->
             {% endfor %}
         {% else %}
-            <p>No suggested edits.</p>
+<!--             <p>No suggested edits.</p> -->
         {% endif %}
 <!--         <form action="" style="padding-top: 10px;">
           <div class="padded-div1"><input type="checkbox" name="edit" value="A"> Suggested Edit 1 <br></div>

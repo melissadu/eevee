@@ -87,22 +87,51 @@ def obj_interact2(request, image_id, src_theme, dst_theme):
     # image = get_object_or_404(Image, pk=image_id)
     # print Image.objects.all() # images are all empty
     images = Image.objects.all()
-    print "IMAGES", images
+    print "IMAGES", image_id
 
     # Hardcoded for the elephant pic (id = 30065)
     # Assume that data is in form: <object_id>:<suggested_edit>
+    # if request.method == 'POST':
+    #     edits = {}
+    #     if(image_id == 13150):
+    #         edits = {
+    #             "593697": "Replace Object 593697",
+    #             "a": "Replace field"
+    #         }
+    #     elif(image_id == 158754):
+    #         edits = {
+    #             "53902": "Replace Object 53902",
+    #             "a": "Add an object to the scene"
+    #         }
+    #     elif(image_id == 66166):
+    #         edits = {
+    #             "1545437": "Replace Object 1545437",
+    #             "1491604": "Replace Object 1491604"
+    #         }
+    #     elif(image_id == 175479):
+    #         edits = {
+    #             "41747": "Replace Object 41747",
+    #             "a": "Add an object to the scene"
+    #         }
+    #     elif image_id == 100318:
+    #         print "Hi"
+    #         edits = {
+    #             "589830": "Replace Object 589830",
+    #             "588983": "Replace Object 588983",
+    #             "b": "Add an object to the scene"
+    #         }
+    #     print edits 
     edits = {
-        "580012": "Replace Object 580012",
-        "580416": "Replace Object 580416",
+        "589830": "Replace Object 589830",
+        "588983": "Replace Object 588983",
         "b": "Add an object to the scene"
     }
-
     # Hardcoded for the elephant pic (id = 30065)
     # Assume that data is in form: <object_id>:[catId1, catId2, catId3]
     # Reference category_id2name.json
     replacementObjs = {
-        "580012": [19, 20, 25],
-        "580416": [20, 21, 23]
+        "589830": [18, 19, 20, 21],
+        "588983": [20, 21, 23]
     }
 
     test = [19, 20];
